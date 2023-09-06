@@ -566,9 +566,9 @@ In this section of the tutorial, we'll walk through the process of packaging you
 
 #### Steps to Follow
 
-##### 1. Dockerizing the FastAPI Application
+##### 1. Dockerizing the model Application
 
-1. **Create a Dockerfile**: Create a file named `Dockerfile` in the root directory of your FastAPI project.
+1. **Create a Dockerfile**: Create a file named `Dockerfile` in the root directory of your project.
 
     ```
     DockerfileCopy code# Use an official Python runtime as a parent image
@@ -601,6 +601,7 @@ In this section of the tutorial, we'll walk through the process of packaging you
     docker run -p 8000:8000 fastapi_app
     ```
     
+
 Visit `http://localhost:8000/docs` to see if your FastAPI application is running inside a Docker container.
 
 ##### 2. Pushing Image to Azure Container Registry
@@ -631,11 +632,12 @@ Visit `http://localhost:8000/docs` to see if your FastAPI application is running
     docker push <acr_login_server>/fastapi_app:v1
     ```
 
- we covered how to Dockerize a FastAPI application and push it to the Azure Container Registry. This containerized application is now ready to be deployed to various Azure services like Azure Kubernetes Service (AKS) or Azure App Service for Containers.
+ We covered how to Dockerize a FastAPI application and push it to the Azure Container Registry. This containerized application is now ready to be deployed to various Azure services like Azure App Service for Containers.
 
 With your FastAPI server now available as a Docker image in the Azure Container Registry, you can easily deploy it in a scalable and manageable way, taking full advantage of Azure's cloud infrastructure.
 
-
+Here is the officials document to push your image to your Azure container registry using the Docker CLI
+https://learn.microsoft.com/en-us/azure/container-registry/container-registry-get-started-docker-cli?tabs=azure-cli
 
 
 
@@ -648,14 +650,12 @@ Once your Docker image is successfully pushed to Azure Container Registry (ACR),
 #### Option 1: Deploy Using Azure Portal
 
 1. **Navigate to the Azure Portal**: Open your browser and log in to your Azure account.
-2. **Choose Service**: Navigate to the service where you want to deploy your Docker image. This could be Azure Kubernetes Service (AKS) or Azure App Service.
+2. **Choose Service**: Navigate to the service where you want to deploy your Docker image. This could be Azure App Service. For many microservices, Azure Kubernetes Service (AKS) could also be an option.
 3. **Configure Settings**:
     - For AKS: Select your AKS cluster and navigate to the `Containers` tab. Choose the image source as `Azure Container Registry`, and select your image and tag.
     - For Azure App Service: Go to `Container settings` under the Web App settings. Select `Azure Container Registry` and then choose your image and tag.
 4. **Deploy**: Click on the `Save` or `Apply` button to deploy your image.
 5. **Verify Deployment**: Once the deployment is complete, you'll receive a URL for your deployed service. Navigate to it to verify your FastAPI application is running as expected.
-
-
 
 
 
@@ -665,7 +665,7 @@ Once your Docker image is successfully pushed to Azure Container Registry (ACR),
 
 - Azure CLI (`az`) installed and authenticated.
 - Azure Container Registry (ACR) with the Docker image pushed.
-- Azure Kubernetes Service (AKS) or Azure App Service set up (depending on where you're deploying).
+- Azure App Service set up (depending on where you're deploying).
 
 1. **Create Web App**: If you haven't already, create a new Web App for Containers.
 
@@ -696,8 +696,6 @@ By now, you should have a comprehensive understanding of how to build, container
 
 ![image-20230826224725861](https://s2.loli.net/2023/08/27/zx5EH8iyJWgFLpP.png)
 
-
-
 ### Implementing CI/CD with GitHub Actions for Automatic Deployment
 
 Continuously integrating and deploying (CI/CD) your FastAPI application allows for quicker development cycles, early bug discovery, and faster delivery of features. In this section, we'll employ GitHub Actions to automate the build, test, and deployment processes for your application.
@@ -706,7 +704,7 @@ Continuously integrating and deploying (CI/CD) your FastAPI application allows f
 
 - A GitHub repository containing your FastAPI application's source code.
 - Azure Container Registry (ACR) to store your application's Docker image.
-- Azure Kubernetes Service (AKS) or Azure App Service as the deployment target for your application.
+- Azure App Service as the deployment target for your application.
 
 #### Steps to Follow
 
@@ -724,10 +722,6 @@ Continuously integrating and deploying (CI/CD) your FastAPI application allows f
 
 
 
-
-
-
-
 ![image-20230826212615465](https://s2.loli.net/2023/08/27/nqbMNtRhPfluAYL.png)
 
 ##### 2. Create the GitHub Actions Workflow File
@@ -737,53 +731,53 @@ Continuously integrating and deploying (CI/CD) your FastAPI application allows f
 3. Paste the following YAML code into the `ci-cd.yaml` file:
 
 ```
-name: CI/CD Pipeline
+name: CI/CD Pipeline to Azure App Service
 
 on:
   push:
     branches:
-      - main  # Adjust this if your primary branch is named differently
+      - main  # Replace if your primary branch is named differently
 
 env:
-  AZURE_REGISTRY_URL: <acr_login_server>
+  AZURE_REGISTRY_URL: <Your_ACR_Login_Server>
   APP_NAME: fastapi_app
 
 jobs:
-  build-and-push:
+  build-and-push-to-acr:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v2  # Checkout code from the repository
+    - uses: actions/checkout@v2
 
-    - name: Login to Azure Container Registry
+    - name: Log in to Azure Container Registry
       run: echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login ${{ env.AZURE_REGISTRY_URL }} -u ${{ secrets.AZURE_REGISTRY_USERNAME }} --password-stdin
 
-    - name: Build and Push Docker Image to ACR
+    - name: Build and Push Image to ACR
       run: |
-        docker build -t ${{ env.AZURE_REGISTRY_URL }}/${{ env.APP_NAME }}:v1 .
-        docker push ${{ env.AZURE_REGISTRY_URL }}/${{ env.APP_NAME }}:v1
+        docker build -t ${{ env.AZURE_REGISTRY_URL }}/${{ env.APP_NAME }}:latest .
+        docker push ${{ env.AZURE_REGISTRY_URL }}/${{ env.APP_NAME }}:latest
 
-  deploy-to-azure:
-    needs: build-and-push  # This ensures the build and push job completes before starting
+  deploy-to-app-service:
+    needs: build-and-push-to-acr
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Login to Azure
+    - name: Azure Login
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
-    - name: Deploy to Azure Kubernetes Service (AKS)
+
+    - name: Deploy to Azure App Service
       run: |
-        az aks get-credentials --resource-group <Resource_Group_Name> --name <AKS_Cluster_Name>
-        kubectl set image deployment/<Deployment_Name> <Container_Name>=${{ env.AZURE_REGISTRY_URL }}/${{ env.APP_NAME }}:v1
+        az webapp config container set --name <Your_App_Service_Name> --resource-group <Your_Resource_Group> --docker-custom-image-name ${{ env.AZURE_REGISTRY_URL }}/${{ env.APP_NAME }}:latest
+
 ```
 
-Replace placeholders like `<acr_login_server>`, `<Resource_Group_Name>`, `<AKS_Cluster_Name>`, and `<Deployment_Name>` with your actual Azure settings.
+Replace the placeholders like `<Your_ACR_Login_Server>`, `<Your_Resource_Group>`, and `<Your_App_Service_Name>` with your specific Azure information.
 
-Save and commit this YAML file to your GitHub repository.
+Save and commit this file to your GitHub repository.
 
-This GitHub Actions workflow will automatically trigger upon any push to your repository's `main` branch. It will build a new Docker image of your FastAPI application, push it to Azure Container Registry, and update the running application on Azure Kubernetes Service or Azure App Service. This enables you to integrate and deploy new changes efficiently and reliably.
+By adding this GitHub Actions workflow, each push to the `main` branch will automatically trigger a build of your FastAPI application's Docker image. The image will be pushed to Azure Container Registry and then deployed to your Azure App Service instance. This setup streamlines your development workflow, making it more efficient and reliable.
 
 
 
