@@ -73,9 +73,11 @@ Differing from the Azure Platform Portal, this Custom Vision can be access by na
     - If you already have an Azure account, you can sign in. 
 2. **Create a New Project**
     - Click on the "New Project" button and fill in the details for your project, such as the name, description, and the resource you wish to use.
+    - The type selection is classification, multiclass, and a general domain.
 3. **Upload Images and Annotate**
-    - After creating your project, you must upload images to train your model. 
-    - To write your own script for uploading images and labels, please check the Azure Custom Vision official documents using the given APIs.
+    - After creating your project, you must upload images with label to train your model. 
+    - This tutorial provides example data in the “dataset“ folder. This contains a split train dataset and a test dataset. The dataset contains types of Animals. The ImageNet original label is given as the folder name. You are also free to change to the label to the ground-truth name, given in the readme file.
+    - In another case, when you have too much data and labels, write your own script for uploading images and labels. Please check the Azure Custom Vision official documents using the given APIs to upload data.
 4. **Train the Model**
     - Once your images are uploaded and annotated, click on the "Train" button to start training your model. Setting the resources as you prefer.
 5. **Evaluate the Model**
@@ -117,7 +119,13 @@ Differing from the Azure Platform Portal, this Custom Vision can be access by na
 
 
 
+Now that your Custom Vision model has been published and you have your endpoint URL and prediction key, you can start making API calls to classify new images.
 
+Once your Custom Vision model is up and running, testing its API endpoints is crucial for ensuring it works as expected before you integrate it into your application. Below are step-by-step guides for testing your API using both image URLs and image files.
+
+
+
+### Testing the Model Service
 
 If you have an image URL:
 
@@ -139,13 +147,9 @@ Set `Content-Type` Header to : `application/octet-stream`
 
 Set Body to : <image file>
 
+#### 1 Using python HTTP request to test
 
-
-Now that your Custom Vision model has been published and you have your endpoint URL and prediction key, you can start making API calls to classify new images.
-
-Once your Custom Vision model is up and running, testing its API endpoints is crucial for ensuring it works as expected before you integrate it into your application. Below are step-by-step guides for testing your API using both image URLs and image files.
-
-#### Testing with an Image URL
+##### Testing with an Image URL
 
 **Step 1: Install Required Software**
 
@@ -186,7 +190,7 @@ print(results)
 
 Run the Python script. If everything is set up correctly, you should see the predicted labels and confidence scores.
 
-#### Testing with an Image File
+##### Testing with an Image File
 
 **Step 1: Install Required Software**
 
@@ -226,9 +230,7 @@ print(results)
 
 Run the Python script. If everything is set up correctly, you should see the predicted labels and confidence scores.
 
-
-
-### Using Postman to Test Your Custom Vision API
+#### 2 Using Postman to Test Your Custom Vision API
 
 Postman is a popular tool for testing APIs. It provides a user-friendly interface to send requests to your API endpoints and view responses. Below is a step-by-step guide to using Postman for testing your Custom Vision API.
 
@@ -236,7 +238,7 @@ Postman is a popular tool for testing APIs. It provides a user-friendly interfac
 
 - Download and install Postman from [here](https://www.postman.com/downloads/).
 
-#### Testing with an Image URL
+##### Testing with an Image URL
 
 **Step 1: Open Postman**
 
@@ -274,7 +276,7 @@ jsonCopy code{
 
 Click the `Send` button to send the request. You should see the response at the bottom of the Postman window, which will include the predicted labels and their confidence scores.
 
-#### Testing with an Image File
+##### Testing with an Image File
 
 **Step 1: Open Postman**
 
@@ -372,7 +374,15 @@ Once you've confirmed that your Custom Vision API is working correctly using eit
 
     Integrate the above function where needed in your application logic. For example, you might call `classify_image` when a user uploads a new image.
 
-    
+5. **Handle Response:**
+
+​		Once the API call returns a response, you can parse the JSON to obtain the classification labels and confidence scores.
+
+```python
+def process_results(result):
+    for label in result:
+        print(f"Label: {label['tagName']}, Confidence: {label['probability']}")
+```
 
 
 
@@ -582,48 +592,42 @@ In this section of the tutorial, we'll walk through the process of packaging you
 2. **Build Docker Image**: Navigate to the folder containing your `Dockerfile` and run the following command.
 
     ```
-    bashCopy code
     docker build -t fastapi_app .
     ```
-
+    
 3. **Test Locally**: After building the image, run it locally to test.
 
     ```
-    bashCopy code
     docker run -p 8000:8000 fastapi_app
     ```
-
-    Visit `http://localhost:8000/docs` to see if your FastAPI application is running inside a Docker container.
+    
+Visit `http://localhost:8000/docs` to see if your FastAPI application is running inside a Docker container.
 
 ##### 2. Pushing Image to Azure Container Registry
 
 1. **Login to Azure Account**: Run the following command to login.
 
     ```
-    bashCopy code
     az login
     ```
-
+    
 2. **Create a Container Registry**: Navigate to the Azure Portal, and create a new Azure Container Registry (ACR).
 
 3. **Authenticate Docker with ACR**: Replace `<acr_name>` with the name of your Azure Container Registry.
 
     ```
-    bashCopy code
     az acr login --name <acr_name>
     ```
-
+    
 4. **Tag the Image**: Before pushing, tag your Docker image using the ACR login server name which you can find in the Azure Portal under your ACR resource.
 
     ```
-    bashCopy code
     docker tag fastapi_app <acr_login_server>/fastapi_app:v1
     ```
-
+    
 5. **Push Docker Image**: Push the Docker image to the ACR.
 
     ```
-    bashCopy code
     docker push <acr_login_server>/fastapi_app:v1
     ```
 
@@ -637,7 +641,25 @@ With your FastAPI server now available as a Docker image in the Azure Container 
 
 ### Deploying Docker Image from Azure Container Registry to Azure Services
 
-Once your Docker image is successfully pushed to Azure Container Registry (ACR), the next step is to deploy it to an Azure service. In this part of the tutorial, we'll cover two options for deploying your containerized FastAPI application: Azure Kubernetes Service (AKS) and Azure App Service.
+Once your Docker image is successfully pushed to Azure Container Registry (ACR), the next step is to deploy it to an Azure service. In this part of the tutorial, there are two options for deploying your containerized application: via the Azure Portal or using the Azure CLI (Command Line Interface).
+
+
+
+#### Option 1: Deploy Using Azure Portal
+
+1. **Navigate to the Azure Portal**: Open your browser and log in to your Azure account.
+2. **Choose Service**: Navigate to the service where you want to deploy your Docker image. This could be Azure Kubernetes Service (AKS) or Azure App Service.
+3. **Configure Settings**:
+    - For AKS: Select your AKS cluster and navigate to the `Containers` tab. Choose the image source as `Azure Container Registry`, and select your image and tag.
+    - For Azure App Service: Go to `Container settings` under the Web App settings. Select `Azure Container Registry` and then choose your image and tag.
+4. **Deploy**: Click on the `Save` or `Apply` button to deploy your image.
+5. **Verify Deployment**: Once the deployment is complete, you'll receive a URL for your deployed service. Navigate to it to verify your FastAPI application is running as expected.
+
+
+
+
+
+#### Option 2: Deploy Using Azure CLI
 
 #### Prerequisites
 
@@ -645,59 +667,30 @@ Once your Docker image is successfully pushed to Azure Container Registry (ACR),
 - Azure Container Registry (ACR) with the Docker image pushed.
 - Azure Kubernetes Service (AKS) or Azure App Service set up (depending on where you're deploying).
 
-#### Deploying to Azure Kubernetes Service (AKS)
-
-1. **Create an AKS Cluster**: If you haven't already, create an AKS cluster in the Azure portal.
-
-2. **Configure kubectl**: Connect to your AKS cluster by running the following command. Replace `<resource-group>` and `<aks-cluster-name>` with your AKS resource group and cluster name respectively.
+1. **Create Web App**: If you haven't already, create a new Web App for Containers.
 
     ```
     bashCopy code
-    az aks get-credentials --resource-group <resource-group> --name <aks-cluster-name>
+    az webapp create --resource-group <ResourceGroup> --plan <AppServicePlan> --name <AppName> --deployment-container-image-name <acr_login_server>/fastapi_app:v1
     ```
 
-3. **Pull Image from ACR to AKS**: Create a Kubernetes secret to pull your image from your private ACR.
+2. **Configure App Service**: Update the container settings to pull from the ACR.
 
     ```
     bashCopy code
-    kubectl create secret docker-registry my-acr-auth --docker-server <acr_login_server> --docker-username <acr_username> --docker-password <acr_password>
+    az webapp config container set --name <AppName> --resource-group <ResourceGroup> --docker-custom-image-name <acr_login_server>/fastapi_app:v1 --docker-registry-server-url https://<acr_login_server> 
     ```
 
-4. **Deploy to AKS**: Create a YAML file, say `k8s-deployment.yaml`, and add the following content. Replace placeholders like `<acr_login_server>` and `my-acr-auth` accordingly.
+3. **Restart App Service**: To make sure the changes take effect.
 
     ```
-    yamlCopy codeapiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: fastapi-app-deployment
-    spec:
-      replicas: 2
-      template:
-        metadata:
-          labels:
-            app: fastapi-app
-        spec:
-          containers:
-          - name: fastapi-app
-            image: <acr_login_server>/fastapi_app:v1
-            ports:
-            - containerPort: 8000
-          imagePullSecrets:
-          - name: my-acr-auth
+    bashCopy code
+    az webapp restart --name <AppName> --resource-group <ResourceGroup>
     ```
 
-    Run `kubectl apply -f k8s-deployment.yaml` to deploy your FastAPI application.
-
-#### Deploying to Azure App Service
-
-1. **Create Web App**: If you haven't already, create a new Web App for Containers in the Azure Portal.
-2. **Configure App Service**: In the Web App settings, go to the `Container settings` section. Choose `Azure Container Registry` and select your image and tag.
-3. **Save and Restart**: Click `Save` and then restart your Web App.
-4. **Check Deployment**: Navigate to the URL provided by the Web App to check if your FastAPI application is live.
+4. **Verify Deployment**: Once deployed, navigate to the Web App's URL to make sure your FastAPI application is running.
 
 
-
-We've shown you how to deploy a FastAPI application stored as a Docker image in Azure Container Registry to both Azure Kubernetes Service and Azure App Service. You can choose the method that best fits your scalability and management needs.
 
 By now, you should have a comprehensive understanding of how to build, containerize, and deploy a FastAPI application on Azure, taking full advantage of the robust features offered by Azure services.
 
@@ -707,25 +700,23 @@ By now, you should have a comprehensive understanding of how to build, container
 
 ### Implementing CI/CD with GitHub Actions for Automatic Deployment
 
-Continuous Integration and Continuous Deployment (CI/CD) enable developers to be more agile, catch bugs early, and deliver value faster. In this section, we'll set up a GitHub Actions workflow to automatically build, test, and deploy our FastAPI application whenever there is a new commit to the GitHub repository.
+Continuously integrating and deploying (CI/CD) your FastAPI application allows for quicker development cycles, early bug discovery, and faster delivery of features. In this section, we'll employ GitHub Actions to automate the build, test, and deployment processes for your application.
 
 #### Prerequisites
 
-- GitHub repository containing your FastAPI application.
-- Azure Container Registry (ACR) where your Docker image will be stored.
-- Azure Kubernetes Service (AKS) or Azure App Service where your application will be deployed.
+- A GitHub repository containing your FastAPI application's source code.
+- Azure Container Registry (ACR) to store your application's Docker image.
+- Azure Kubernetes Service (AKS) or Azure App Service as the deployment target for your application.
 
 #### Steps to Follow
 
-##### 1. Create GitHub Secrets for Azure Authentication
+##### 1. Set Up GitHub Secrets for Azure Authentication
 
-1. Open your GitHub repository and navigate to `Settings > Secrets > New repository secret`.
-2. Create secrets for Azure Container Registry (ACR) credentials and Azure login details:
-    - `AZURE_REGISTRY_USERNAME`: ACR username
-    - `AZURE_REGISTRY_PASSWORD`: ACR password
-    - `AZURE_CREDENTIALS`: Azure service principal in JSON format.
-
-##### 2. Create a GitHub Actions Workflow
+1. Go to your GitHub repository and navigate to `Settings > Secrets > New repository secret`.
+2. Add the following secrets to securely store your Azure and ACR credentials:
+    - `AZURE_REGISTRY_USERNAME`: Username for Azure Container Registry
+    - `AZURE_REGISTRY_PASSWORD`: Password for Azure Container Registry
+    - `AZURE_CREDENTIALS`: Azure service principal credentials in JSON format.
 
 
 
@@ -739,16 +730,19 @@ Continuous Integration and Continuous Deployment (CI/CD) enable developers to be
 
 ![image-20230826212615465](https://s2.loli.net/2023/08/27/nqbMNtRhPfluAYL.png)
 
-1. In your GitHub repository, create a new file under `.github/workflows/`, say `ci-cd.yaml`.
-2. Add the following YAML code into the `ci-cd.yaml` file.
+##### 2. Create the GitHub Actions Workflow File
+
+1. In your GitHub repository, navigate to the `.github/workflows/` directory. If it doesn't exist, create it.
+2. Create a new YAML file inside this directory, for example, `ci-cd.yaml`.
+3. Paste the following YAML code into the `ci-cd.yaml` file:
 
 ```
-yamlCopy codename: CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
-      - main
+      - main  # Adjust this if your primary branch is named differently
 
 env:
   AZURE_REGISTRY_URL: <acr_login_server>
@@ -759,40 +753,43 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      
+    - uses: actions/checkout@v2  # Checkout code from the repository
+
     - name: Login to Azure Container Registry
       run: echo "${{ secrets.AZURE_REGISTRY_PASSWORD }}" | docker login ${{ env.AZURE_REGISTRY_URL }} -u ${{ secrets.AZURE_REGISTRY_USERNAME }} --password-stdin
-      
-    - name: Build and push Docker image
+
+    - name: Build and Push Docker Image to ACR
       run: |
         docker build -t ${{ env.AZURE_REGISTRY_URL }}/${{ env.APP_NAME }}:v1 .
         docker push ${{ env.AZURE_REGISTRY_URL }}/${{ env.APP_NAME }}:v1
 
-  deploy:
-    needs: build-and-push
+  deploy-to-azure:
+    needs: build-and-push  # This ensures the build and push job completes before starting
     runs-on: ubuntu-latest
     
     steps:
-    - name: Azure login
+    - name: Login to Azure
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-        
-    - name: Deploy to Azure Kubernetes Service
+    
+    - name: Deploy to Azure Kubernetes Service (AKS)
       run: |
-        az aks get-credentials --resource-group <resource-group> --name <aks-cluster-name>
-        kubectl set image deployment/fastapi-app-deployment fastapi-app=${{ env.AZURE_REGISTRY_URL }}/${{ env.APP_NAME }}:v1
+        az aks get-credentials --resource-group <Resource_Group_Name> --name <AKS_Cluster_Name>
+        kubectl set image deployment/<Deployment_Name> <Container_Name>=${{ env.AZURE_REGISTRY_URL }}/${{ env.APP_NAME }}:v1
 ```
 
-Replace placeholders like `<acr_login_server>`, `<resource-group>`, and `<aks-cluster-name>` with your specific Azure details.
+Replace placeholders like `<acr_login_server>`, `<Resource_Group_Name>`, `<AKS_Cluster_Name>`, and `<Deployment_Name>` with your actual Azure settings.
 
-1. Save and commit the `ci-cd.yaml` file to your repository.
+Save and commit this YAML file to your GitHub repository.
 
-#### Summary
+This GitHub Actions workflow will automatically trigger upon any push to your repository's `main` branch. It will build a new Docker image of your FastAPI application, push it to Azure Container Registry, and update the running application on Azure Kubernetes Service or Azure App Service. This enables you to integrate and deploy new changes efficiently and reliably.
 
-With this GitHub Actions workflow, every time you push changes to the `main` branch, GitHub will automatically trigger the CI/CD pipeline. This pipeline will build a new Docker image, push it to Azure Container Registry, and update the image running on your Azure Kubernetes Service or Azure App Service.
+
+
+
+
+
 
 ------
 
