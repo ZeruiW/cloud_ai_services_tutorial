@@ -5,24 +5,23 @@
 ### Objective
 
 1. **How to use Azure Cognitive Service**
-2. **Integration **
-    - Integrate Cloud AI services(e.g. Hugging Face) 
-    - Make the server design follow OpenAPI standards through Swagger API.
+2. **Build your own AI service**
+    - Integrate Cloud AI services.
+    - Make the API design follows Open API standards through SwaggerHub.
 3. **Deployment**:
+    - Build Container
     - Deploy on Azure Cloud
 
 
 ------
 
-### Part I: Acquiring Cloud AI Services
+### Part I: Azure Cloud AI Service
 
 
 
 #### What is Azure Cognitive Services?
 
-Cognitive Services brings AI within reach of every developer and data scientist. With leading models, a variety of use cases can be unlocked. All it takes is an API call to embed the ability to see, hear, speak, search, understand, and accelerate advanced decision-making into your apps. Enable developers and data scientists of all skill levels to easily add AI capabilities to their apps.
-
-
+Cognitive Services brings AI within reach of every developer and data scientist. A variety of use cases can be unlocked. All it takes is an API call to embed the ability to see, hear, speak, search, understand, and accelerate advanced decision-making into your apps. Enable developers and data scientists of all skill levels to easily add AI capabilities to their apps.
 
 
 
@@ -35,7 +34,7 @@ Cognitive Services brings AI within reach of every developer and data scientist.
 To get started with Azure Cognitive Services, you'll first need to access the Azure Cloud platform. Below are the steps to get started:
 
 1. **Sign-Up for an Azure Account**
-    - If you don't have an Azure subscription, you can create an account with Concordia University's log in. Go to the education page to get more than a hundred dollars of free credits.
+    - If you don't have an Azure subscription, you can create an account with Concordia University Account login. Go to the education page to get more than a hundred dollars of free credits.
 2. **Login to Azure Portal**
     - Go to the [Azure Portal](https://portal.azure.com/) and log in using your credentials.
 3. **Navigate to Cognitive Services**
@@ -43,7 +42,7 @@ To get started with Azure Cognitive Services, you'll first need to access the Az
 4. **Create a New Service**
     - Click on the "Create" button to start setting up a new Cognitive Services resource. You'll be prompted to fill in details like:
         - **Resource Name**: A unique name for your service
-        - **Subscription**: Choose your Azure subscription, and choose **Student account** for free credits.
+        - **Subscription**: Choose your Azure subscription, and choose a **Student account** for free credits.
         - **Resource Group**: Create a new one or select an existing one
         - **Region**: Select the geographical area closest to you or your customers
         - **Pricing Tier**: Choose a pricing tier based on your needs
@@ -62,20 +61,20 @@ To get started with Azure Cognitive Services, you'll first need to access the Az
 
 
 
-Azure offers a specialized service for image recognition: Custom Vision on another address instead of Azure Cloud Portal. This service is highly user-friendly and is designed for the rapid and easy creation of custom image classification models.
-
 #### Accessing Custom Vision
 
-You can access this service by navigating to the [Custom Vision Portal](https://www.customvision.ai/).
+Azure offers a specialized service for image recognition: Custom Vision on another address instead of Azure Cloud Portal. This service is highly user-friendly and is designed for the rapid and easy creation of custom image classification models.
+
+Differing from the Azure Platform Portal, this Custom Vision can be access by navigating to the [Custom Vision Portal](https://www.customvision.ai/).
 
 #### Detailed Steps
 
 1. **Sign In or Sign Up**
-    - If you already have an Azure account, you can simply sign in. 
+    - If you already have an Azure account, you can sign in. 
 2. **Create a New Project**
     - Click on the "New Project" button and fill in the details for your project, such as the name, description, and the resource you wish to use.
 3. **Upload Images and Annotate**
-    - After creating your project, you'll need to upload images to train your model. 
+    - After creating your project, you must upload images to train your model. 
     - To write your own script for uploading images and labels, please check the Azure Custom Vision official documents using the given APIs.
 4. **Train the Model**
     - Once your images are uploaded and annotated, click on the "Train" button to start training your model. Setting the resources as you prefer.
@@ -796,7 +795,6 @@ Replace placeholders like `<acr_login_server>`, `<resource-group>`, and `<aks-cl
 With this GitHub Actions workflow, every time you push changes to the `main` branch, GitHub will automatically trigger the CI/CD pipeline. This pipeline will build a new Docker image, push it to Azure Container Registry, and update the image running on your Azure Kubernetes Service or Azure App Service.
 
 ------
-
 
 
 
