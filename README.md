@@ -156,7 +156,6 @@ Set Body to : <image file>
 If you haven't already, install Python and the requests library.
 
 ```
-bashCopy code
 pip install requests
 ```
 
@@ -165,7 +164,7 @@ pip install requests
 Create a Python script and add the following code:
 
 ```
-pythonCopy codeimport requests
+import requests
 import json
 
 # Endpoint and headers setup
@@ -197,7 +196,6 @@ Run the Python script. If everything is set up correctly, you should see the pre
 If you haven't already, install Python and the requests library.
 
 ```
-bashCopy code
 pip install requests
 ```
 
@@ -206,7 +204,7 @@ pip install requests
 Create a Python script and add the following code:
 
 ```
-pythonCopy codeimport requests
+import requests
 
 # Endpoint and headers setup
 endpoint_url = "https://eastus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/projectname/classify/iterations/imagenetAzure/image"
@@ -251,13 +249,7 @@ Open Postman and create a new request by clicking on the `New` button and then s
 - Enter your Custom Vision URL endpoint for image URL classification in the request URL field:
     `https://eastus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/projectname/classify/iterations/imagenetAzure/url`
 
-- In the 
-
-    ```
-    Headers
-    ```
-
-     tab, add the following headers:
+- In the Headers tab, add the following headers:
 
     - `Prediction-Key`: `12861a3a15xxxxxxxxxxxxxxxxx`
     - `Content-Type`: `application/json`
@@ -267,7 +259,7 @@ Open Postman and create a new request by clicking on the `New` button and then s
 Go to the `Body` tab, select `raw` and choose `JSON` from the dropdown. Then enter the following payload:
 
 ```
-jsonCopy code{
+{
   "Url": "https://example.com/image.png"
 }
 ```
@@ -289,13 +281,7 @@ Open Postman and create a new request by clicking on the `New` button and then s
 - Enter your Custom Vision URL endpoint for image file classification in the request URL field:
     `https://eastus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/projectname/classify/iterations/imagenetAzure/image`
 
-- In the 
-
-    ```
-    Headers
-    ```
-
-     tab, add the following headers:
+- In the Headers tab, add the following headers:
 
     - `Prediction-Key`: `12861a3a1xxxxxxxxxxxxxxxx`
     - `Content-Type`: `application/octet-stream`
@@ -343,7 +329,6 @@ Once you've confirmed that your Custom Vision API is working correctly using eit
     In your backend service, first initialize an HTTP client that you will use to communicate with the Azure API.
 
     ```
-    pythonCopy code
     import requests
     ```
 
@@ -352,7 +337,7 @@ Once you've confirmed that your Custom Vision API is working correctly using eit
     Define constants or environment variables for the endpoint URL and the Prediction-Key.
 
     ```
-    pythonCopy codePREDICTION_KEY = "12861a3a1xxxxxxxxxxxxxxxx"
+    PREDICTION_KEY = "12861a3a1xxxxxxxxxxxxxxxx"
     ENDPOINT_URL = "https://eastus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/projectname/classify/iterations/imagenetAzure/image"
     ```
 
@@ -361,7 +346,7 @@ Once you've confirmed that your Custom Vision API is working correctly using eit
     Create a function that makes an API call to the Custom Vision service.
 
     ```
-    pythonCopy codedef classify_image(image_data):
+    def classify_image(image_data):
         headers = {
             "Prediction-Key": PREDICTION_KEY,
             "Content-Type": "application/octet-stream"
@@ -406,7 +391,7 @@ FastAPI is a modern, fast web framework for building APIs with Python 3.7+ based
 2. **Import FastAPI and Initialize:**
 
     ```
-    pythonCopy codefrom fastapi import FastAPI
+    from fastapi import FastAPI
     
     app = FastAPI()
     ```
@@ -416,7 +401,7 @@ FastAPI is a modern, fast web framework for building APIs with Python 3.7+ based
 You'll need the function to interact with Azure Custom Vision, similar to the one we discussed earlier. Let's assume you have a function called `classify_image(image_data)` that takes an image binary as input and returns Azure API's JSON response.
 
 ```
-pythonCopy codeimport requests
+import requests
 
 PREDICTION_KEY = "12861a3a1xxxxxxxxxxxxxxxx"
 ENDPOINT_URL = "https://eastus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/projectname/classify/iterations/imagenetAzure/image"
@@ -437,7 +422,7 @@ def classify_image(image_data):
     You'll need to import FastAPI's `File` and `UploadFile` for file upload functionality.
 
     ```
-    pythonCopy codefrom fastapi import FastAPI, File, UploadFile
+   from fastapi import FastAPI, File, UploadFile
     
     @app.post("/classify/")
     async def upload_file(file: UploadFile = File(...)):
@@ -455,7 +440,6 @@ This FastAPI endpoint listens to POST requests at `/classify/` and expects a fil
     Open your terminal, navigate to the folder where `main.py` is located, and run:
 
     ```
-    bashCopy code
     uvicorn main:app --reload
     ```
 
@@ -571,7 +555,7 @@ In this section of the tutorial, we'll walk through the process of packaging you
 1. **Create a Dockerfile**: Create a file named `Dockerfile` in the root directory of your project.
 
     ```
-    DockerfileCopy code# Use an official Python runtime as a parent image
+    # Use an official Python runtime as a parent image
     FROM python:3.9-slim
     
     # Working directory
@@ -670,21 +654,18 @@ Once your Docker image is successfully pushed to Azure Container Registry (ACR),
 1. **Create Web App**: If you haven't already, create a new Web App for Containers.
 
     ```
-    bashCopy code
     az webapp create --resource-group <ResourceGroup> --plan <AppServicePlan> --name <AppName> --deployment-container-image-name <acr_login_server>/fastapi_app:v1
     ```
 
 2. **Configure App Service**: Update the container settings to pull from the ACR.
 
     ```
-    bashCopy code
     az webapp config container set --name <AppName> --resource-group <ResourceGroup> --docker-custom-image-name <acr_login_server>/fastapi_app:v1 --docker-registry-server-url https://<acr_login_server> 
     ```
 
 3. **Restart App Service**: To make sure the changes take effect.
 
     ```
-    bashCopy code
     az webapp restart --name <AppName> --resource-group <ResourceGroup>
     ```
 
