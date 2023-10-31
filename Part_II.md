@@ -123,7 +123,7 @@ def classify_image(image_data):
         image_data = await file.read()
         result = classify_image(image_data)
         return result
-    ```
+   ```
 
 This FastAPI endpoint listens to POST requests at `/classify/` and expects a file upload. The uploaded file is read into `image_data`, which is then sent to `classify_image()` for getting the classification result.
 
@@ -228,6 +228,113 @@ If you're familiar with `chroot`, then think of a container as an extended versi
 
 A running container uses an isolated filesystem. This isolated filesystem is provided by an image, and the image must contain everything needed to run an application - all dependencies, configurations, scripts, binaries, etc. The image also contains other configurations for the container, such as environment variables, a default command to run, and other metadata.
 
+
+
+### Using Azure Web App
+
+Prerequisites:
+
+ - Prepared and Tested Flask application
+ - An Azure account
+ - A GitHub account
+
+
+#### Azure Portal Configuration:
+a. Go to the Azure Portal: https://portal.azure.com/
+
+b. Create a new resource, select Web App.
+
+c. Fill in the necessary information:
+
+#### Subscription
+
+Azure for Students (you can create a new one if needed)
+
+Name (this is the name of your application)
+
+Publish: Code
+
+Runtime stack: Python 3.8
+
+![1](https://s2.loli.net/2023/10/31/OAUTFsgDy7aGcVR.png)
+
+#### Connect with your GitHub accont, select the Repository.
+
+Review and click on Create.
+
+![2](https://s2.loli.net/2023/10/31/FLGf9Oubo376Dka.png)
+
+
+
+
+#### Configuring Local Flask App:
+
+a. Make sure you have a requirements.txt file in your Flask app directory with all the necessary packages.
+
+b. Add a file named startup.txt and inside, put:
+
+gunicorn --bind=0.0.0.0 --timeout 600 <your_flask_app_name>:app
+
+Replace <your_flask_app_name> with the name of your Flask script (without the .py).
+
+### GitHub Actions:
+a. Go to your Flask application repository on GitHub.
+
+b. Click on the "Actions" tab.
+
+c. Click on "Set up a workflow yourself".
+
+d. Replace the content with the following YAML configuration:
+
+```YAML
+name: Deploy to Azure Web App
+
+on:
+  push:
+    branches:
+      - main  # Adjust this if your primary branch is not 'main'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python version
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8  # Adjust to your app's Python version
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: <your_azure_web_app_name>
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: .
+```
+Replace <your_azure_web_app_name> with the name you chose on Azure.
+
+In your GitHub repository, go to the Settings tab, then Secrets. Click on New repository secret. Name it AZURE_WEBAPP_PUBLISH_PROFILE. For its value, you'll need to get the publish profile from Azure.
+
+Go back to Azure Portal, navigate to your Web App, and click on Get publish profile. This will download an XML file.
+Open that XML file and copy its entire content. Paste this content as the value for your GitHub secret.
+
+Commit and push this GitHub Action. Every time you push to your main branch, the action will deploy your Flask app to Azure.
+
+Test your Deployment:
+
+a. After pushing to your main branch and allowing the GitHub Action to run, your app should be deployed.
+
+b. Go to <your_azure_web_app_name>.azurewebsites.net to see your live Flask app!
+
+That's it! 
 
 
 
